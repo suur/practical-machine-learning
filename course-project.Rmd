@@ -1,0 +1,75 @@
+---
+title: "Practical Machine Learning Course Project"
+author: "Agu Suur"
+date: "July 26, 2018"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Executive summary
+In this report we are using data gathered from accelerometers to predict the 5 different types of barbell lifts being performed. The data came from [this source](http://groupware.les.inf.puc-rio.br/har). Using random forest, we were able to build a model with an accuracy of 99.81% and an expected out of sample error of 0.19%.
+
+## Analysis
+First let's load `caret` and set up R to use multiple cores for the training to go faster. `4` should be configured to the number of cores on the system.
+```{r, message=FALSE}
+library(caret)
+library(doMC)
+registerDoMC(4)
+```
+
+### Load and clean data
+```{r}
+download.file('https://d396qusza40orc.cloudfront.net/predmachlearn/pml-training.csv', destfile="pml-training.csv")
+download.file('https://d396qusza40orc.cloudfront.net/predmachlearn/pml-testing.csv', destfile="pml-testing.csv")
+pml_training <- read.csv('pml-training.csv', na.strings=c("", "NA", "#DIV/0!"))
+pml_testing <- read.csv('pml-testing.csv', na.strings=c("", "NA", "#DIV/0!"))
+```
+
+There are a lot of NA values present in the data set. Let's remove all columns with NA values.
+```{r}
+pml_training <- pml_training[, colSums(is.na(pml_training)) == 0]
+pml_testing <- pml_testing[, colSums(is.na(pml_testing)) == 0]
+```
+We end up with 60 columns for both training and testing. But not all of the columns are useful features. The first 6 columns are actually indexes, timestamps or username.
+```{r}
+names(pml_training[,1:6])
+```
+Let's get rid of them. We then have 54 features to be used in the model.
+```{r}
+pml_training <- pml_training[,7:ncol(pml_training)]
+pml_testing <- pml_testing[,7:ncol(pml_testing)]
+```
+
+### Training
+Fixing seed for reproducibility
+```{r}
+set.seed(123)
+```
+Let's do a training/testing split of 70/30. We'll train on the 70% and test on the 30%, leaving the original testing set untouced.
+```{r}
+training_split <- createDataPartition(pml_training$classe, p=0.70, list=FALSE)
+training <- pml_training[training_split,]
+testing <- pml_training[-training_split,]
+```
+
+Let's train a random forest, since it performs well on classification tasks. We're able to do a 5-fold cross-validation using functionality built in to caret's random forest implementation.
+```{r}
+fit_control <- trainControl(method="cv", number=5)
+fit_rf <- train(classe ~ ., method="rf", trControl=fit_control, data=training)
+```
+### Testing and conclusions
+```{r}
+pred_rf <- predict(fit_rf, testing)
+confusionMatrix(pred_rf, testing$classe)
+```
+We end up with a model with an accuracy of 99.81% and an out of sample error of `100-99.81=0.19%`.
+
+### Predicition quiz
+Finally, let's finish this up by predicting the testing data outcomes for the quiz.
+
+```{r}
+predict(fit_rf, pml_testing)
+```
