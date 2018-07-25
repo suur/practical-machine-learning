@@ -351,11 +351,30 @@ training &lt;- pml_training[training_split,]
 testing &lt;- pml_training[-training_split,]</code></pre>
 <p>Let’s train a random forest, since it performs well on classification tasks. We’re able to use a 5-fold cross-validation using functionality built in to caret’s random forest implementation.</p>
 <pre class="r"><code>fit_control &lt;- trainControl(method=&quot;cv&quot;, number=5)
-fit_rf &lt;- train(classe ~ ., method=&quot;rf&quot;, trControl=fit_control, data=training)</code></pre>
+fit_rf &lt;- train(classe ~ ., method=&quot;rf&quot;, trControl=fit_control, data=training)
+fit_rf</code></pre>
+<pre><code>## Random Forest 
+## 
+## 13737 samples
+##    53 predictor
+##     5 classes: 'A', 'B', 'C', 'D', 'E' 
+## 
+## No pre-processing
+## Resampling: Cross-Validated (5 fold) 
+## Summary of sample sizes: 10989, 10991, 10989, 10990, 10989 
+## Resampling results across tuning parameters:
+## 
+##   mtry  Accuracy   Kappa    
+##    2    0.9928653  0.9909745
+##   27    0.9972337  0.9965009
+##   53    0.9955593  0.9943827
+## 
+## Accuracy was used to select the optimal model using the largest value.
+## The final value used for the model was mtry = 27.</code></pre>
 </div>
 <div id="cross-validation-and-conclusions" class="section level3">
 <h3>Cross-validation and conclusions</h3>
-<p>Finally, let’s cross-validate the model on completely new data to get the accuracy and out-of-sample error rates.</p>
+<p>Now that we have the model, let’s cross-validate the model on completely new data to get the accuracy and out-of-sample error rates.</p>
 <pre class="r"><code>pred_rf &lt;- predict(fit_rf, testing)
 confusionMatrix(pred_rf, testing$classe)</code></pre>
 <pre><code>## Confusion Matrix and Statistics
@@ -389,14 +408,7 @@ confusionMatrix(pred_rf, testing$classe)</code></pre>
 ## Detection Rate         0.2845   0.1930   0.1737   0.1631   0.1839
 ## Detection Prevalence   0.2850   0.1937   0.1742   0.1631   0.1840
 ## Balanced Accuracy      0.9996   0.9983   0.9977   0.9979   0.9999</code></pre>
-<p>We end up with a model with an accuracy of 99.81% and an out of sample error of <code>100-99.81=0.19%</code>.</p>
-<pre class="r"><code>names(fit_rf)</code></pre>
-<pre><code>##  [1] &quot;method&quot;       &quot;modelInfo&quot;    &quot;modelType&quot;    &quot;results&quot;     
-##  [5] &quot;pred&quot;         &quot;bestTune&quot;     &quot;call&quot;         &quot;dots&quot;        
-##  [9] &quot;metric&quot;       &quot;control&quot;      &quot;finalModel&quot;   &quot;preProcess&quot;  
-## [13] &quot;trainingData&quot; &quot;resample&quot;     &quot;resampledCM&quot;  &quot;perfNames&quot;   
-## [17] &quot;maximize&quot;     &quot;yLimits&quot;      &quot;times&quot;        &quot;levels&quot;      
-## [21] &quot;terms&quot;        &quot;coefnames&quot;    &quot;xlevels&quot;</code></pre>
+<p>We end up with an accuracy of 99.81% and an out of sample error of <code>100-99.81=0.19%</code>.</p>
 </div>
 <div id="predicition-quiz" class="section level3">
 <h3>Predicition quiz</h3>
