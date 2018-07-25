@@ -55,17 +55,22 @@ training <- pml_training[training_split,]
 testing <- pml_training[-training_split,]
 ```
 
-Let's train a random forest, since it performs well on classification tasks. We're able to do a 5-fold cross-validation using functionality built in to caret's random forest implementation.
+Let's train a random forest, since it performs well on classification tasks. We're able to use a 5-fold cross-validation using functionality built in to caret's random forest implementation.
 ```{r}
 fit_control <- trainControl(method="cv", number=5)
 fit_rf <- train(classe ~ ., method="rf", trControl=fit_control, data=training)
 ```
-### Testing and conclusions
+### Cross-validation and conclusions
+Finally, let's cross-validate the model on completely new data to get the accuracy and out-of-sample error rates.
 ```{r}
 pred_rf <- predict(fit_rf, testing)
 confusionMatrix(pred_rf, testing$classe)
 ```
 We end up with a model with an accuracy of 99.81% and an out of sample error of `100-99.81=0.19%`.
+
+```{r}
+names(fit_rf)
+```
 
 ### Predicition quiz
 Finally, let's finish this up by predicting the testing data outcomes for the quiz.
